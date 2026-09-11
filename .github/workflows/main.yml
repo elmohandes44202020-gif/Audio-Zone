@@ -31,11 +31,22 @@ jobs:
 
       - name: Build Debug APK
         run: |
-          cd android
-          gradle :app:assembleDebug --stacktrace
+          PROJECT_DIR=$(find . -name "settings.gradle*" -exec dirname {} \; | head -n 1)
+          if [ -z "$PROJECT_DIR" ]; then
+            PROJECT_DIR="."
+          fi
+          echo "Found Android project in: $PROJECT_DIR"
+          cd "$PROJECT_DIR"
+          ls -la
+          if [ -f "./gradlew" ]; then
+            chmod +x ./gradlew
+            ./gradlew assembleDebug --stacktrace --no-daemon
+          else
+            gradle assembleDebug --stacktrace --no-daemon
+          fi
 
       - name: Upload APK Artifact
         uses: actions/upload-artifact@v4
         with:
           name: app-debug-apk
-          path: android/app/build/outputs/apk/debug/*.apk
+          path: "**/build/outputs/apk/debug/*.apk"
